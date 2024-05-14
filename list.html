@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>List of coupon</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous" />
+  <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
+
+  <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
+  <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet" />
+  <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css"
+    rel="stylesheet" />
+
+  <script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
+  <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
+  <script
+    src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
+  <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
+</head>
+
+<body>
+  <div class="container mt-5">
+    <div class="d-flex title">
+      <h1>Coupon List</h1>
+      <a href="file:///C:/Users/Acer/Dropbox/My%20PC%20(DESKTOP-ENN9ELB)/Desktop/login-form-20/login-form-20/add.html">
+        <button href="/add.html" class="btn btn-primary">Add coupon</button>
+      </a>
+    </div>
+    <div class="coupon-container" id="coupon-container"></div>
+    <div class="loading mx-auto" id="loading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <div class="alert alert-warning" role="alert" id="not-found" style="display: none">
+      Coupons not found
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
+    crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+  <script type="module">
+    // Create a FilePond instance
+    FilePond.registerPlugin(FilePondPluginImagePreview);
+    FilePond.registerPlugin(FilePondPluginFileValidateType);
+    // const pond = FilePond.create(inputElement, {});
+
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.13.0/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+    } from "https://www.gstatic.com/firebasejs/9.13.0/firebase-auth.js";
+    import {
+      getDatabase,
+      set,
+      ref,
+      update,
+      onValue,
+      get,
+    } from "https://www.gstatic.com/firebasejs/9.13.0/firebase-database.js";
+    import * as st from "https://www.gstatic.com/firebasejs/9.14.0/firebase-storage.js";
+
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDJD_cro1PMqxjCnBfUVUKW436c7xbRmbU",
+      authDomain: "bbargin-auth.firebaseapp.com",
+      projectId: "bbargin-auth",
+      storageBucket: "bbargin-auth.appspot.com",
+      messagingSenderId: "392858832542",
+      appId: "1:392858832542:web:3c5e9cb456de1628a7f58f",
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    // const storage = st.getStorage(app)
+    // console.log(st.getStorage(app))
+
+    function makeid(length) {
+      var result = "";
+      var characters =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      var charactersLength = characters.length;
+      for (var i = 0; i < length; i++) {
+        result += characters.charAt(
+          Math.floor(Math.random() * charactersLength)
+        );
+      }
+      return result;
+    }
+
+    window.getCoupon = () => {
+      const path = `coupon`;
+      return get(ref(database, path));
+    };
+  </script>
+  <script>
+    const coupons = [];
+
+    const couponHtml = ({
+      couponname,
+      description,
+      enddate,
+      imageurl,
+      price,
+      id,
+    }) => {
+      return `
+         <div class="coupon">
+          <div class="d-flex">
+            <img
+              class="coupon-image circular_image"
+              src="${imageurl}"
+              alt=""
+              width="100"
+            />
+            <div class="coupon-content">
+              <div class="coupon-title">${couponname}</div>
+              <div class="coupon-description">
+               ${description}
+              </div>
+              <div class="coupon-price">Price: Rs. ${price}</div>
+              <div class="coupon-date">Expiry Date: ${enddate}</div>
+            </div>
+          </div>
+          <div class="edit-wrapper">
+          <a href="file:///C:/Users/Acer/Dropbox/My%20PC%20(DESKTOP-ENN9ELB)/Desktop/login-form-20/login-form-20/update.html?id=${id}" class="edit">
+            <button class="btn btn-success btn-text">Edit</button>
+          </a>
+            </div>
+        </div>
+         `;
+    };
+
+    setTimeout(() => {
+      window.getCoupon().then((res) => {
+        document.getElementById("loading").style.display = "none";
+        if (res.size) {
+          res.forEach((c) => {
+            coupons.push({ id: c.key, ...c.val() });
+          });
+
+          let html = ``;
+
+          coupons.forEach((c) => {
+            html += couponHtml(c);
+          });
+
+          document.getElementById("coupon-container").innerHTML = html;
+        } else {
+          document.getElementById("not-found").style.display = "";
+        }
+      });
+    }, 500);
+  </script>
+</body>
+<style>
+  .mx-auto {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+
+  .title {
+    justify-content: space-between;
+  }
+
+  .coupon {
+    border: 1px solid rgba(155, 217, 238, 0.415);
+    border-radius: 15px;
+    /* padding: 10px;
+      padding-top: 20px; */
+    padding: 20px 10px 10px 10px;
+    margin: 5px 0px 5px 0px;
+  }
+
+  .coupon:hover {
+    border: 1px solid rgb(155, 217, 238);
+    background-color: rgba(155, 217, 238, 0.076);
+  }
+
+  .coupon-image {
+    margin: 10px;
+  }
+
+  .coupon-title {
+    font-size: 1.3rem;
+    font-weight: 500;
+  }
+
+
+  .coupon-date {
+    margin-top: 10px;
+    font-weight: 500;
+  }
+
+  .edit {
+    visibility: hidden;
+  }
+
+  .coupon:hover .edit {
+    visibility: visible;
+  }
+
+  .circular_image {
+    clip-path: circle();
+  }
+
+  .edit-wrapper {
+    text-align: right;
+  }
+</style>
+
+</html>

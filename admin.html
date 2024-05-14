@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin panel</title>
+
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+    <h1>Welcome to the Html panel !</h1>
+    <form id="form">
+        <div class="container">
+            <h1>Create a new coupon</h1>
+            <p>Fill these fields to create a new coupon.</p>
+            <hr>
+
+            <label for="email"><b>Title of your coupon</b></label>
+            <input type="text" placeholder="Coupon name (max 25 characters)" name="couponname" id="couponname"
+                maxlength=25 required>
+
+            <label><b>Description</b></label>
+            <input type="text" placeholder="The Coupon Description" name="description" id="description" required>
+
+
+            <label><b>Price</b></label>
+
+            <input type="text" placeholder="Price" name="price" id="price" required>
+
+
+            <div>
+                <label><b>End date</b></label>
+                <input type="date" placeholder="Coupon end date" name="enddate" id="enddate" required>
+
+                <!--preset values for the date field-->
+
+                <div class="chip-container">
+                    <span class="chip" onclick="setDate(15, 'days')">15 days</span>
+                    <span class="chip" onclick="setDate(1,'months')">1 month</span>
+                    <span class="chip" onclick="setDate(3,'months')">3 month</span>
+                </div>
+
+            </div>
+
+            <div style="margin-top: 1rem;">
+                <label for="img">Select image:</label>
+                <input type="file" id="img" name="img" accept="image/*">
+                <hr>
+            </div>
+
+            <!--Cdn for the moment js-->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+            <!--code for preset values using cards-->
+            <script>
+                function setDate(date, value) {
+                    const d = document.getElementById("enddate")
+                    d.value = moment().add(date, value).format("YYYY-MM-DD")
+                }
+            </script>
+
+            <button onclick="submit" type="Submit" id="submitData" name="submitData" class="registerbtn">Submit</button>
+            <script type="module">
+                // Import the functions you need from the SDKs you need
+                import { initializeApp } from "https://www.gstatic.com/firebasejs/9.13.0/firebase-app.js";
+                import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.13.0/firebase-auth.js";
+                import { getDatabase, set, ref, update, onValue } from "https://www.gstatic.com/firebasejs/9.13.0/firebase-database.js";
+                import * as st from "https://www.gstatic.com/firebasejs/9.14.0/firebase-storage.js"
+
+                // TODO: Add SDKs for Firebase products that you want to use
+                // https://firebase.google.com/docs/web/setup#available-libraries
+
+                // Your web app's Firebase configuration
+                const firebaseConfig = {
+                    apiKey: "AIzaSyDJD_cro1PMqxjCnBfUVUKW436c7xbRmbU",
+                    authDomain: "bbargin-auth.firebaseapp.com",
+                    projectId: "bbargin-auth",
+                    storageBucket: "bbargin-auth.appspot.com",
+                    messagingSenderId: "392858832542",
+                    appId: "1:392858832542:web:3c5e9cb456de1628a7f58f"
+                };
+
+                // Initialize Firebase
+                const app = initializeApp(firebaseConfig);
+                const database = getDatabase(app);
+                // const storage = st.getStorage(app)
+                // console.log(st.getStorage(app))
+
+                const inputElement = document.querySelector('input[type="file"]');
+
+                // Create a FilePond instance
+                FilePond.registerPlugin(FilePondPluginImagePreview);
+                FilePond.registerPlugin(FilePondPluginFileValidateType);
+                const pond = FilePond.create(inputElement, { acceptedFileTypes: ['image/*'], });
+
+                async function formsubmit(e) {
+                    e.preventDefault()
+                    const data = {
+                        couponname: document.getElementById('couponname').value,
+                        enddate: document.getElementById('enddate').value,
+                        description: document.getElementById('description').value,
+                        price: document.getElementById('price').value,
+                        imageurl: ""
+                    }
+
+                    // from File pond 
+                    const image = pond.getFiles()[0].file
+
+                    //image-empty field validation
+
+                    if (!image) {
+                        alert("Image is required")
+                        return
+                    }
+                    //turning image to blob(from stack overflow)
+                    const imageToBase64 = (blob) => {
+                        return new Promise((resolve) => {
+                            var reader = new FileReader();
+                            reader.readAsDataURL(blob);
+                            reader.onloadend = function () {
+                                var base64data = reader.result;
+                                resolve(base64data)
+
+                            }
+                        })
+                    }
+
+                    //Assymetric loading the image
+                    data.imageurl = await imageToBase64(image)
+
+                    //random id generator for the image url(from stack overflow)
+                    function makeid(length) {
+                        var result = '';
+                        var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                        var charactersLength = characters.length;
+                        for (var i = 0; i < length; i++) {
+                            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+                        }
+                        return result;
+                    }
+
+                    set(ref(database, `coupon/${makeid(10)}`), data).then(() => {
+                        alert("Coupon added")
+                        window.location.href = ""
+                    })
+
+                }
+                //Date field validation
+                const form = document.getElementById("form");
+                form.onsubmit = formsubmit;
+                document.getElementById("enddate").setAttribute("min", new Date().toISOString().split("T")[0])
+
+
+            </script>
+
+            <style>
+                .chip-container {
+                    margin-top: 1rem;
+                }
+
+                .chip {
+
+                    padding: 5px;
+                    background-color: rgb(178, 224, 220);
+                    border-radius: 5px;
+                }
+
+                .chip:hover {
+                    background-color: rgb(7, 7, 98);
+                    color: white;
+                    cursor: pointer;
+                }
+            </style>
+
+        </div>
+    </form>
+
+
+</body>
+
+</html>
